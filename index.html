@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#1D3557">
+<title>P-JOURNEY 수업 도구</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  :root {
+    --ink: #1D2733;
+    --court: #1D3557;
+    --court-2: #274472;
+    --line: #F4C21B;
+    --floor: #EDF1F5;
+    --paper: #FFFFFF;
+    --muted: #5F6F82;
+    --rule: #D5DDE6;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+    color: var(--ink);
+    background: var(--floor);
+    font-size: 16px;
+    line-height: 1.6;
+    word-break: keep-all;
+  }
+  a { color: inherit; }
+  :focus-visible { outline: 3px solid var(--line); outline-offset: 3px; border-radius: 6px; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
+
+  /* 상단 */
+  .top {
+    background: var(--court);
+    color: #fff;
+    padding: 44px 0 150px;
+    position: relative;
+    overflow: hidden;
+  }
+  .top::after {
+    /* 트랙 레인 */
+    content: ""; position: absolute; left: 0; right: 0; bottom: 64px; height: 0;
+    border-top: 3px dashed rgba(244, 194, 27, .55);
+  }
+  .brand { font-size: 15px; font-weight: 700; color: var(--line); letter-spacing: 0.02em; }
+  .top h1 {
+    font-size: clamp(30px, 5vw, 46px);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.2;
+    margin-top: 6px;
+  }
+  .top p { margin-top: 12px; max-width: 34em; color: #C9D5E3; font-size: 16px; }
+
+  /* 도구 카드 */
+  .tools {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+    margin-top: -118px;
+    position: relative;
+    z-index: 1;
+  }
+  .tool {
+    background: var(--paper);
+    border-radius: 18px;
+    padding: 22px 22px 20px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 1px 0 var(--rule), 0 14px 30px -18px rgba(29, 53, 87, .45);
+  }
+  .station { display: flex; align-items: center; gap: 10px; }
+  .station b {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: var(--line); color: var(--court);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; font-weight: 900;
+    flex-shrink: 0;
+  }
+  .station span { font-weight: 700; color: var(--court); font-size: 15px; }
+  .station small { display: block; color: var(--muted); font-weight: 500; font-size: 13px; line-height: 1.3; }
+  .tool h2 {
+    font-size: 25px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.25;
+    margin: 18px 0 6px;
+  }
+  .tool .does { color: var(--muted); font-size: 15px; flex: 1; }
+  .tech {
+    display: inline-block; margin-top: 14px; align-self: flex-start;
+    font-size: 13px; font-weight: 600; color: var(--court);
+    background: #E7EEF7; border-radius: 6px; padding: 3px 9px;
+  }
+  .actions { display: flex; gap: 8px; margin-top: 18px; }
+  .btn {
+    flex: 1; text-align: center; text-decoration: none; font-weight: 700; font-size: 15px;
+    border-radius: 11px; padding: 12px 10px; border: none; cursor: pointer; font-family: inherit;
+  }
+  .btn-open { background: var(--court); color: #fff; }
+  .btn-open:hover { background: var(--court-2); }
+  .btn-qr { background: var(--floor); color: var(--court); flex: 0 0 auto; padding: 12px 16px; }
+  .btn[aria-disabled="true"] { background: var(--rule); color: var(--muted); pointer-events: none; }
+  .picks { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 18px; }
+  .pick {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+    background: var(--court); color: #fff; text-decoration: none; font-weight: 700; font-size: 15.5px;
+    border-radius: 11px; padding: 13px 8px; line-height: 1.25;
+  }
+  .pick:hover { background: var(--court-2); }
+  .pick small { display: block; font-weight: 500; font-size: 12px; opacity: .75; }
+  .btn-qr-all { width: 100%; margin-top: 8px; }
+  .qr-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 18px 0 6px; }
+  .qr-grid figure { margin: 0; }
+  .qr-grid .qr { margin: 0; }
+  .qr-grid .qr img, .qr-grid .qr canvas { width: 100% !important; max-width: 200px; height: auto; }
+  .qr-grid figcaption { font-weight: 800; color: var(--court); margin-top: 4px; }
+  .modal-box.wide { width: min(560px, 100%); }
+  .sub-links { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .sub-links a {
+    font-size: 13px; font-weight: 600; text-decoration: none; color: var(--court);
+    border: 1.5px solid var(--rule); border-radius: 8px; padding: 4px 10px;
+  }
+  .sub-links a:hover { border-color: var(--court); }
+
+  .run-note { text-align: center; color: var(--muted); font-size: 14px; margin-top: 18px; }
+
+  /* 본문 섹션 */
+  section.block { padding: 64px 0 0; }
+  section.block h2.sec {
+    font-size: 26px; font-weight: 800; letter-spacing: -0.02em; color: var(--court);
+  }
+  .lead { margin-top: 12px; max-width: 42em; color: #36434F; }
+
+  .steps {
+    list-style: none; margin-top: 26px;
+    display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0;
+    counter-reset: st;
+  }
+  .steps li {
+    counter-increment: st;
+    padding: 0 18px 0 0;
+    position: relative;
+  }
+  .steps li::before {
+    content: counter(st);
+    display: flex; align-items: center; justify-content: center;
+    width: 34px; height: 34px; border-radius: 50%;
+    background: var(--court); color: #fff; font-weight: 800; font-size: 15px;
+    position: relative; z-index: 1;
+  }
+  .steps li::after {
+    content: ""; position: absolute; top: 16px; left: 34px; right: 0;
+    border-top: 2px solid var(--rule);
+  }
+  .steps li:last-child::after { display: none; }
+  .steps h3 { font-size: 17px; font-weight: 800; margin: 12px 0 4px; }
+  .steps p { font-size: 14.5px; color: #44515E; }
+
+  /* 학년별 설계 */
+  .design {
+    margin-top: 26px;
+    background: var(--paper);
+    border-radius: 18px;
+    overflow: hidden;
+  }
+  .design-row {
+    display: grid;
+    grid-template-columns: 150px repeat(3, minmax(0, 1fr));
+    border-top: 1px solid var(--rule);
+  }
+  .design-row:first-child { border-top: none; }
+  .design-row > div { padding: 14px 16px; font-size: 14.5px; }
+  .design-row .rh { font-weight: 700; color: var(--court); background: #F5F8FB; }
+  .design-row.head > div { font-weight: 800; font-size: 15px; color: #fff; background: var(--court); }
+  .design-row.head .rh { background: var(--court); }
+  .design-row .tl { font-weight: 800; font-size: 16px; }
+  .design-row.step > div:not(.rh) { font-weight: 700; }
+  .cell-label { display: none; }
+
+  footer { padding: 56px 0 40px; color: var(--muted); font-size: 13px; text-align: center; }
+
+  /* QR 창 */
+  .modal {
+    position: fixed; inset: 0; background: rgba(15, 25, 40, .72); z-index: 20;
+    display: none; align-items: center; justify-content: center; padding: 20px;
+  }
+  .modal.show { display: flex; }
+  .modal-box {
+    background: #fff; border-radius: 20px; padding: 28px; text-align: center; width: min(420px, 100%);
+  }
+  .modal-box h3 { font-size: 22px; font-weight: 800; color: var(--court); }
+  .modal-box .qr { display: flex; justify-content: center; margin: 18px 0 10px; }
+  .modal-box .qr img, .modal-box .qr canvas { width: min(300px, 70vw); height: auto; }
+  .modal-box .url { font-size: 12.5px; color: var(--muted); word-break: break-all; }
+  .modal-box .btn { margin-top: 18px; width: 100%; }
+
+  @media (max-width: 860px) {
+    .tools { grid-template-columns: 1fr; margin-top: -110px; }
+    .top { padding-bottom: 140px; }
+    .top::after { display: none; }
+    .steps { grid-template-columns: 1fr 1fr; row-gap: 26px; }
+    .steps li:nth-child(2)::after { display: none; }
+    .design-row { grid-template-columns: 1fr; }
+    .design-row.head { display: none; }
+    .design-row .rh { padding-bottom: 6px; }
+    .design-row > div:not(.rh) { padding-top: 6px; padding-bottom: 6px; }
+    .design-row > div:last-child { padding-bottom: 14px; }
+    .cell-label { display: inline; font-weight: 800; color: var(--court); margin-right: 6px; }
+  }
+  @media (max-width: 520px) {
+    .steps { grid-template-columns: 1fr; }
+    .steps li::after { display: none; }
+  }
+  @media print {
+    .actions, .sub-links, .picks, .btn-qr-all, .modal { display: none !important; }
+    body { background: #fff; }
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand">P-JOURNEY</div>
+    <h1>학년별 맞춤형<br>AI·디지털 수업 도구</h1>
+    <p>1학년에서 3학년으로 이어지는 체력운동 수업에서 학생이 스스로 확인해야 할 것을 돕는 도구입니다. 설치나 회원가입 없이 브라우저에서 바로 열립니다.</p>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="tools" id="tools"></div>
+
+  <section class="block" id="process">
+    <h2 class="sec">도구를 만든 절차</h2>
+    <p class="lead">AI 수업 도구가 수업을 지원하려면 교사의 수업 의도와 정확히 맞아야 하지만, 모든 수업 상황에 맞는 도구가 이미 있을 수는 없습니다. 그래서 필요한 도구를 교사가 생성형 AI로 직접 만들어 쓰는 절차를 마련했습니다. 개발 기준은 수업의 흐름을 끊지 않는 것, 곧 교사가 설명할 것이 적고 학생이 바로 쓸 수 있는가입니다. 이 절차는 특정 도구에 한정되지 않아 다른 수업 상황에도 그대로 적용할 수 있습니다.</p>
+    <ol class="steps">
+      <li><h3>수업 문제</h3><p>학년의 도달점에 비추어 학생이 스스로 확인해야 할 것이 무엇인지 정합니다.</p></li>
+      <li><h3>코드 설계</h3><p>생성형 AI(Claude)로 동작 인식, 시간 기록, 판정 알고리즘을 설계합니다.</p></li>
+      <li><h3>현장 시연과 수정</h3><p>실제 수업의 기기·조명·공간에서 시연하며 인식 오류와 조작 단계를 고쳐 나갑니다.</p></li>
+      <li><h3>배포</h3><p>GitHub Pages로 배포해 학생이 QR 하나로 설치나 회원가입 없이 접속합니다.</p></li>
+    </ol>
+  </section>
+
+  <section class="block" id="design">
+    <h2 class="sec">학년별 설계</h2>
+    <div class="design" id="designTable"></div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">P-JOURNEY · 체육과 계열형 체력운동 수업</div>
+</footer>
+
+<div class="modal" id="qrModal" role="dialog" aria-modal="true" aria-labelledby="qrTitle">
+  <div class="modal-box">
+    <h3 id="qrTitle"></h3>
+    <div class="qr" id="qrBox"></div>
+    <div class="url" id="qrUrl"></div>
+    <button class="btn btn-open" id="qrClose">닫기</button>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   도구 정보: 주소(url)만 채우면 버튼이 켜집니다.
+   - 같은 계정의 저장소라면 '저장소이름/' 형태로 적습니다.
+   - 주소가 비어 있으면 '준비 중'으로 표시됩니다.
+   - more: 한 도구에 세부 화면이 여러 개일 때 (예: 종목별 체커)
+   ============================================================ */
+const TOOLS = [
+  {
+    grade: 1,
+    step: '하나의 동작을 정확하게',
+    name: '동작 비교 프로그램',
+    does: '시범 영상과 내 영상을 나란히 보며 자세의 차이를 찾습니다.',
+    tech: '영상 동기화·배속 제어',
+    url: 'motion-compare/',
+    more: [],
+    problem: '동작을 수행하는 중에는 자신의 자세를 볼 수 없어 스스로 점검하기 어렵다.',
+    how: '시범 영상과 학습자 영상을 한 화면에서 동시 재생한다. 배속을 낮추어 순간 동작을 확대 관찰하고, 관절별 기준을 단계화한 체크리스트와 대조하여 스스로 점검한다.',
+    role: '제시된 기준과 자신의 동작을 대조하여 차이를 찾는다.'
+  },
+  {
+    grade: 2,
+    step: '여러 체력 요소를 고르게',
+    name: '달리기 Lap Checker',
+    does: 'QR 카드를 비출 때마다 횟수가 기록되고, 목표까지 남은 구간을 몇 초 안에 달려야 하는지 알려줍니다.',
+    tech: 'QR 인식·실시간 연산',
+    url: 'p-journey-lapchecker/',
+    more: [],
+    problem: '달리면서 횟수를 세면 기록이 어긋나기 쉽고, 자신의 페이스가 어떤지 가늠하기 어렵다.',
+    how: '출발선의 태블릿이 학생의 QR 카드를 인식해 통과 시점을 자동 기록한다. 누적 랩과 구간 페이스를 산출하고, 목표 기록에 도달하려면 남은 구간을 어느 속도로 달려야 하는지 실시간으로 제시한다.',
+    role: '기준과의 차이를 근거로 자신의 속도를 스스로 조절한다.'
+  },
+  {
+    grade: 3,
+    step: '프로그램을 나에게 맞게',
+    name: 'AI Rep Checker',
+    does: '카메라가 동작을 인식해 기준을 채운 동작만 개수로 셉니다.',
+    tech: 'AI 동작 인식(MediaPipe Pose)',
+    url: '',
+    more: [
+      { label: '셔틀런', en: 'Shuttle Run', url: 'shuttlerun/' },
+      { label: '런지', en: 'Lunge', url: 'lunge/' },
+      { label: '푸시업', en: 'Push-up', url: 'push-up/' },
+      { label: '레그레이즈', en: 'Leg Raise', url: 'legraise/' }
+    ],
+    problem: '개수를 세는 데 집중하면 동료의 동작을 보고 피드백할 여유가 없다.',
+    how: '관절 좌표를 추출·연산해 가동 범위를 판정한다. 기준을 충족한 동작만 Rep으로 계수하고 미달 동작은 No rep으로 구분하여, 수행의 양과 질을 함께 기록한다.',
+    role: '기준을 적용해 자신과 동료의 수행을 판정하고 피드백한다.'
+  }
+];
+
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const abs = (u) => new URL(u, location.href).href;
+
+  // 도구 카드
+  $('tools').innerHTML = TOOLS.map((t, i) => {
+    const ready = !!t.url;
+    const subs = (t.more || []).filter(m => m.url);
+    if (subs.length) {
+      return `
+    <article class="tool">
+      <div class="station"><b>${t.grade}</b><span>${t.grade}학년<small>${esc(t.step)}</small></span></div>
+      <h2>${esc(t.name)}</h2>
+      <p class="does">${esc(t.does)}</p>
+      <span class="tech">${esc(t.tech)}</span>
+      <div class="picks">
+        ${subs.map(m => `<a class="pick" href="${esc(m.url)}" target="_blank" rel="noopener">${esc(m.label)}${m.en ? `<small>${esc(m.en)}</small>` : ''}</a>`).join('')}
+      </div>
+      <button class="btn btn-qr btn-qr-all" data-i="${i}" type="button">종목별 QR 보기</button>
+    </article>`;
+    }
+    return `
+    <article class="tool">
+      <div class="station"><b>${t.grade}</b><span>${t.grade}학년<small>${esc(t.step)}</small></span></div>
+      <h2>${esc(t.name)}</h2>
+      <p class="does">${esc(t.does)}</p>
+      <span class="tech">${esc(t.tech)}</span>
+      <div class="actions">
+        <a class="btn btn-open" ${ready ? `href="${esc(t.url)}" target="_blank" rel="noopener"` : 'aria-disabled="true"'}>${ready ? '도구 열기' : '준비 중'}</a>
+        ${ready ? `<button class="btn btn-qr" data-i="${i}" type="button">QR</button>` : ''}
+      </div>
+      ${subs.length ? `<div class="sub-links">${subs.map(m => `<a href="${esc(m.url)}" target="_blank" rel="noopener">${esc(m.label)}</a>`).join('')}</div>` : ''}
+    </article>`;
+  }).join('');
+
+  // 학년별 설계 표
+  const rows = [
+    ['여정의 걸음', t => t.step, 'step'],
+    ['수업 문제', t => t.problem],
+    ['맞춤형 수업 도구', t => t.name, 'tool'],
+    ['적용 기술', t => t.tech],
+    ['구현 방식', t => t.how],
+    ['학생의 역할', t => t.role]
+  ];
+  let html = `<div class="design-row head"><div class="rh">구분</div>${TOOLS.map(t => `<div>${t.grade}학년</div>`).join('')}</div>`;
+  rows.forEach(([label, get, kind]) => {
+    html += `<div class="design-row ${kind === 'step' ? 'step' : ''}"><div class="rh">${label}</div>${TOOLS.map(t =>
+      `<div class="${kind === 'tool' ? 'tl' : ''}"><span class="cell-label">${t.grade}학년</span>${esc(get(t))}</div>`).join('')}</div>`;
+  });
+  $('designTable').innerHTML = html;
+
+  // QR 창
+  const modal = $('qrModal');
+  let lastFocus = null;
+  function openQR(t) {
+    const subs = (t.more || []).filter(m => m.url);
+    const box = $('qrBox');
+    box.innerHTML = '';
+    box.className = subs.length ? 'qr-grid' : 'qr';
+    modal.querySelector('.modal-box').classList.toggle('wide', subs.length > 0);
+    $('qrTitle').textContent = `${t.grade}학년 · ${t.name}`;
+    const items = subs.length ? subs : [{ label: '', url: t.url }];
+    $('qrUrl').textContent = subs.length ? '' : abs(t.url);
+    if (typeof QRCode !== 'function') {
+      box.textContent = 'QR을 만들지 못했습니다. 인터넷 연결을 확인하세요.';
+    } else {
+      items.forEach(m => {
+        const holder = subs.length ? document.createElement('figure') : box;
+        const q = subs.length ? document.createElement('div') : box;
+        if (subs.length) {
+          q.className = 'qr';
+          holder.appendChild(q);
+          const cap = document.createElement('figcaption');
+          cap.textContent = m.label;
+          holder.appendChild(cap);
+          box.appendChild(holder);
+        }
+        new QRCode(q, { text: abs(m.url), width: 600, height: 600, correctLevel: QRCode.CorrectLevel.M });
+      });
+    }
+    lastFocus = document.activeElement;
+    modal.classList.add('show');
+    $('qrClose').focus();
+  }
+  function closeQR() {
+    modal.classList.remove('show');
+    if (lastFocus) lastFocus.focus();
+  }
+  document.querySelectorAll('.btn-qr').forEach(b => b.addEventListener('click', () => openQR(TOOLS[+b.dataset.i])));
+  $('qrClose').addEventListener('click', closeQR);
+  modal.addEventListener('click', e => { if (e.target === modal) closeQR(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && modal.classList.contains('show')) closeQR(); });
+})();
+</script>
+</body>
+</html>
